@@ -1,0 +1,122 @@
+[
+    {
+        "name": "get_customer_orders",
+        "description": "Retrieves the last 10 orders for the authenticated guest. Use when the guest asks about 'my orders' without specifying an order ID, or to identify which order they are asking about. Do NOT call on every turn — only when you need the order list.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "The authenticated guest's unique customer ID from the session context"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Number of recent orders to return. Default 5, max 10.",
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 10
+                }
+            },
+            "required": [
+                "customer_id"
+            ]
+        }
+    },
+    {
+        "name": "get_order_status",
+        "description": "Returns the current status of a specific order from the OMS (Order Management System), including line items, fulfillment type, split shipment groups, delay history, and cancellation eligibility. Always call this before discussing a specific order's status.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "The order ID (format: ORD-XXXXX)"
+                },
+                "customer_id": {
+                    "type": "string",
+                    "description": "Must match the authenticated session's customer_id to prevent unauthorized access to another guest's order"
+                }
+            },
+            "required": [
+                "order_id",
+                "customer_id"
+            ]
+        }
+    },
+    {
+        "name": "get_tracking_info",
+        "description": "Fetches live tracking data from the carrier API for a shipped order. Returns carrier name, tracking number, milestone history, current location, ETA, delay flag, and delay reason. Only call when order status is 'shipped', 'in_transit', or 'out_for_delivery'. If the carrier API returns no data, do not retry in the same session — log a tracking_watch event and inform the guest.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "The order ID to fetch tracking for"
+                },
+                "shipment_group_id": {
+                    "type": "string",
+                    "description": "Optional — use for split shipments to get tracking for a specific package. Retrieve this from get_order_status response shipment_groups array."
+                }
+            },
+            "required": [
+                "order_id"
+            ]
+        }
+    },
+    {
+        "name": "escalate_to_human",
+        "description": "Creates a priority support case and transfers the conversation to a human guest care agent. Passes the full conversation context so the guest does not need to repeat themselves. Use when: (1) guest requests a human, (2) high frustration with prior delay on same order, (3) package not received 24hrs after delivery scan, (4) 48hr+ overdue delivery, or (5) unresolved after two attempts.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "The authenticated guest's customer ID"
+                },
+                "order_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "All order IDs discussed in this conversation session"
+                },
+                "escalation_reason": {
+                    "type": "string",
+                    "enum": [
+                        "guest_requested",
+                        "high_frustration_repeat_delay",
+                        "package_not_received",
+                        "delivery_48hr_overdue",
+                        "unresolved_after_two_attempts",
+                        "auto_48hr_delay"
+                    ],
+                    "description": "The reason this conversation is being escalated to a human agent"
+                },
+                "sentiment_level": {
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "description": "The detected emotional tone of the guest in this conversation"
+                },
+                "case_summary": {
+                    "type": "string",
+                    "description": "Plain English summary of the issue for the human agent. Max 100 words. Include: what the guest ordered, what went wrong, what you have already tried, and what the guest wants.",
+                    "maxLength": 600
+                },
+                "compensation_offered": {
+                    "type": "boolean",
+                    "description": "Whether a coupon, credit, or other compensation was offered during this conversation"
+                }
+            },
+            "required": [
+                "customer_id",
+                "escalation_reason",
+                "sentiment_level",
+                "case_summary"
+            ]
+        }
+    }
+]

@@ -1,6 +1,6 @@
 # 🎯 24/7 Order Status & Tracking Agent
 
-> **⚠️ Disclaimer:** This is a **personal AI learning project** created for portfolio purposes. This is **not** Target Corporation's official product, use case, or repository. I have no affiliation with Target's engineering or product teams. All Target branding references are used solely for illustrative purposes in a product design exercise. Mock data, personas, and scenarios are entirely fictional.
+> **⚠️ Disclaimer:** This is a **personal AI learning project** created for portfolio purposes. This is **not** Target Corporation's official product, use case, or repository. All Target branding references are used solely for illustrative purposes in a product design exercise. Mock data, personas, and scenarios are entirely fictional.
 
 ---
 
@@ -39,7 +39,7 @@
 
 ## 🧠 About This Project
 
-This project is a **full product design + AI prototype** exercise. It follows the process a senior PM would use to design an AI agent from scratch:
+This project is a **full product design + AI prototype** exercise. It follows the process I as a Senior PM would use to design an AI agent from scratch:
 
 1. Define the goal and business case
 2. Map the user ecosystem and choose the highest-impact segment
