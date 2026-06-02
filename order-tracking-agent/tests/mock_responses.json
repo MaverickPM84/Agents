@@ -1,0 +1,328 @@
+{
+  "_readme": "Paste these into the AI Studio 'Function response' panel when the agent calls a tool. Pick the scenario you want to test.",
+  "scenarios": {
+    "scenario_1_out_for_delivery": {
+      "get_customer_orders": {
+        "orders": [
+          {
+            "order_id": "ORD-20490",
+            "items": [
+              {
+                "name": "Nike Air Zoom Pegasus",
+                "qty": 1
+              }
+            ],
+            "order_date": "2026-06-01",
+            "fulfillment_type": "ship_to_home",
+            "status": "out_for_delivery",
+            "current_eta": "2026-06-03T19:00:00"
+          }
+        ]
+      },
+      "get_order_status": {
+        "order_id": "ORD-20490",
+        "customer_id": "C-001",
+        "items": [
+          {
+            "name": "Nike Air Zoom Pegasus",
+            "qty": 1,
+            "sku": "86291038"
+          }
+        ],
+        "fulfillment_type": "ship_to_home",
+        "status": "out_for_delivery",
+        "original_eta": "2026-06-03",
+        "current_eta": "2026-06-03T19:00:00",
+        "carrier": "FedEx",
+        "split_shipments": false,
+        "prior_delay_count": 0,
+        "cancellation_eligible": false
+      },
+      "get_tracking_info": {
+        "order_id": "ORD-20490",
+        "carrier": "FedEx",
+        "tracking_number": "748927349283",
+        "current_status": "OUT_FOR_DELIVERY",
+        "current_location": "Chicago, IL",
+        "eta": "2026-06-03T19:00:00",
+        "delay_flag": false,
+        "delay_reason": null,
+        "milestones": [
+          {
+            "status": "PICKED_UP",
+            "location": "Minneapolis, MN",
+            "timestamp": "2026-06-01T10:30:00"
+          },
+          {
+            "status": "IN_TRANSIT",
+            "location": "Chicago, IL",
+            "timestamp": "2026-06-02T06:00:00"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "location": "Chicago, IL",
+            "timestamp": "2026-06-03T09:15:00"
+          }
+        ]
+      }
+    },
+    "scenario_2_delayed_first_time": {
+      "get_order_status": {
+        "order_id": "ORD-20490",
+        "items": [
+          {
+            "name": "Dyson V15 Vacuum",
+            "qty": 1
+          }
+        ],
+        "fulfillment_type": "ship_to_home",
+        "status": "delayed",
+        "original_eta": "2026-06-02",
+        "current_eta": "2026-06-05T20:00:00",
+        "carrier": "FedEx",
+        "prior_delay_count": 0,
+        "hours_past_original_eta": 28
+      },
+      "get_tracking_info": {
+        "carrier": "FedEx",
+        "tracking_number": "394820184920",
+        "delay_flag": true,
+        "delay_reason": "weather_disruption",
+        "delay_details": "Severe weather at Memphis sorting hub causing network-wide delays",
+        "current_status": "IN_TRANSIT",
+        "current_location": "Memphis, TN",
+        "eta": "2026-06-05T20:00:00",
+        "milestones": [
+          {
+            "status": "PICKED_UP",
+            "location": "Atlanta, GA",
+            "timestamp": "2026-06-01T08:00:00"
+          },
+          {
+            "status": "IN_TRANSIT",
+            "location": "Memphis, TN",
+            "timestamp": "2026-06-01T22:00:00"
+          },
+          {
+            "status": "DELAYED",
+            "location": "Memphis, TN",
+            "timestamp": "2026-06-02T06:00:00"
+          }
+        ]
+      }
+    },
+    "scenario_3_repeat_delay_escalate": {
+      "get_order_status": {
+        "order_id": "ORD-20490",
+        "items": [
+          {
+            "name": "Dyson V15 Vacuum",
+            "qty": 1
+          }
+        ],
+        "status": "delayed",
+        "original_eta": "2026-06-01",
+        "current_eta": "2026-06-06",
+        "prior_delay_count": 2,
+        "hours_past_original_eta": 52
+      },
+      "escalate_to_human": {
+        "case_id": "ESC-92831",
+        "status": "created",
+        "priority": "high",
+        "estimated_wait_minutes": 3,
+        "assigned_team": "senior_guest_relations"
+      }
+    },
+    "scenario_4_split_shipment": {
+      "get_order_status": {
+        "order_id": "ORD-30012",
+        "items": [
+          {
+            "name": "Samsung 65\" TV",
+            "sku": "TV-001"
+          },
+          {
+            "name": "TV Wall Mount",
+            "sku": "MOUNT-002"
+          },
+          {
+            "name": "HDMI Cable 6ft",
+            "sku": "HDMI-003"
+          }
+        ],
+        "split_shipments": true,
+        "shipment_groups": [
+          {
+            "shipment_group_id": "SG-001",
+            "items": [
+              "Samsung 65\" TV"
+            ],
+            "status": "delivered",
+            "carrier": "FedEx",
+            "delivered_at": "2026-06-02T14:30:00",
+            "delivery_location": "Front door"
+          },
+          {
+            "shipment_group_id": "SG-002",
+            "items": [
+              "TV Wall Mount",
+              "HDMI Cable 6ft"
+            ],
+            "status": "in_transit",
+            "carrier": "UPS",
+            "eta": "2026-06-04",
+            "tracking_number": "1Z999AA10123456784"
+          }
+        ]
+      },
+      "get_tracking_info_SG002": {
+        "shipment_group_id": "SG-002",
+        "carrier": "UPS",
+        "tracking_number": "1Z999AA10123456784",
+        "current_status": "IN_TRANSIT",
+        "current_location": "Columbus, OH",
+        "eta": "2026-06-04T20:00:00",
+        "delay_flag": false,
+        "milestones": [
+          {
+            "status": "PICKED_UP",
+            "location": "Louisville, KY",
+            "timestamp": "2026-06-02T09:00:00"
+          },
+          {
+            "status": "IN_TRANSIT",
+            "location": "Columbus, OH",
+            "timestamp": "2026-06-03T04:00:00"
+          }
+        ]
+      }
+    },
+    "scenario_5_delivered_not_received": {
+      "get_order_status": {
+        "order_id": "ORD-20490",
+        "items": [
+          {
+            "name": "Nike Air Zoom Pegasus",
+            "qty": 1
+          }
+        ],
+        "status": "delivered",
+        "delivered_at": "2026-06-02T11:30:00",
+        "carrier": "FedEx"
+      },
+      "get_tracking_info": {
+        "carrier": "FedEx",
+        "current_status": "DELIVERED",
+        "delivery_timestamp": "2026-06-02T11:30:00",
+        "delivery_location": "Front door",
+        "hours_since_delivery": 26,
+        "proof_of_delivery_available": true,
+        "delivery_photo_url": "https://fedex.example.com/pod/photo123"
+      },
+      "escalate_to_human": {
+        "case_id": "ESC-93021",
+        "status": "created",
+        "priority": "high",
+        "estimated_wait_minutes": 5,
+        "claim_process_initiated": true
+      }
+    },
+    "scenario_6_drive_up_ready": {
+      "get_customer_orders": {
+        "orders": [
+          {
+            "order_id": "ORD-40023",
+            "items": [
+              {
+                "name": "Instant Pot Duo 7-in-1",
+                "qty": 1
+              }
+            ],
+            "order_date": "2026-06-03",
+            "fulfillment_type": "drive_up",
+            "status": "order_ready"
+          }
+        ]
+      },
+      "get_order_status": {
+        "order_id": "ORD-40023",
+        "items": [
+          {
+            "name": "Instant Pot Duo 7-in-1",
+            "qty": 1
+          }
+        ],
+        "fulfillment_type": "drive_up",
+        "status": "order_ready",
+        "store_name": "Target - Lincoln Park",
+        "store_address": "1101 W North Ave, Chicago, IL 60642",
+        "pickup_code": "TG-8821",
+        "hold_expires_at": "2026-06-05T23:59:00",
+        "estimated_prep_time_remaining_minutes": 0
+      }
+    },
+    "scenario_7_order_in_transit_multiple_orders": {
+      "get_customer_orders": {
+        "orders": [
+          {
+            "order_id": "ORD-50100",
+            "items": [
+              {
+                "name": "Vitamix Blender A3500",
+                "qty": 1
+              }
+            ],
+            "order_date": "2026-06-02",
+            "fulfillment_type": "ship_to_home",
+            "status": "in_transit",
+            "current_eta": "2026-06-06"
+          },
+          {
+            "order_id": "ORD-50088",
+            "items": [
+              {
+                "name": "Levi's 511 Jeans (2-pack)",
+                "qty": 1
+              }
+            ],
+            "order_date": "2026-05-29",
+            "fulfillment_type": "ship_to_home",
+            "status": "delivered",
+            "delivered_at": "2026-06-01T15:00:00"
+          }
+        ]
+      }
+    },
+    "scenario_8_carrier_api_unavailable": {
+      "get_order_status": {
+        "order_id": "ORD-20490",
+        "status": "shipped",
+        "carrier": "OnTrac",
+        "shipped_at": "2026-06-02T08:00:00"
+      },
+      "get_tracking_info": {
+        "error": "carrier_api_timeout",
+        "message": "OnTrac tracking API is currently unavailable",
+        "retry_after_minutes": 120
+      }
+    },
+    "scenario_9_label_created_not_shipped": {
+      "get_order_status": {
+        "order_id": "ORD-60001",
+        "items": [
+          {
+            "name": "KitchenAid Stand Mixer",
+            "qty": 1
+          }
+        ],
+        "fulfillment_type": "ship_to_home",
+        "status": "label_created",
+        "label_created_at": "2026-06-03T06:00:00",
+        "estimated_ship_date": "2026-06-03",
+        "carrier": "UPS",
+        "prior_delay_count": 0
+      }
+    }
+  }
+}
