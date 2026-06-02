@@ -31,7 +31,7 @@
 - [Success Metrics](docs/product_brief.md#success-metrics)
 - [Architecture](docs/architecture.md)
 - [Getting Started](#-getting-started)
-- [🎮 **Live Demo →**](https://aistudio.google.com/apps/cf42d248-6f7d-443b-a5bc-1428bf3cbf35?fullscreenApplet=true&showPreview=true&showAssistant=true)
+- [Live Demo →](https://aistudio.google.com/apps/cf42d248-6f7d-443b-a5bc-1428bf3cbf35?fullscreenApplet=true&showPreview=true&showAssistant=true)
 - [Project Structure](#-project-structure)
 - [Conversation Flows](docs/conversation_flows.md)
 - [What I Learned](#-what-i-learned)
