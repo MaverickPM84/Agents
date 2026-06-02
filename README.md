@@ -14,6 +14,7 @@ A collection of AI Agent product design and implementation projects.
 ## Skills Demonstrated
 
 - Product Discovery
+- Product Strategy/Design - Goal, User Segmentation, User Pains, Solutions, Implementation Roadmap, Success Metrics
 - AI Agent Design
 - Prompt Engineering
 - RAG
