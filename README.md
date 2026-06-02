@@ -6,7 +6,7 @@ A collection of AI Agent product design and implementation projects.
 
 | Agent | Domain | Status |
 |---------|----------|----------|
-| Order Tracking Agent | Retail CX | Complete |
+| Order Tracking Agent [Link](order-tracking-agent/README.md) | Retail CX | Complete |
 | Concierge Agent | Customer Support | In Progress |
 | Shopping Assistant | eCommerce | Planned |
 | RAG Research Agent | Enterprise Search | Planned |
