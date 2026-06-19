@@ -50,9 +50,11 @@ or
   "source_type": "url",
   "source_ref": "https://example.com/article",
   "model": "llama-3.3-70b-versatile",
+  "elapsed_ms": 3214,
   "created_at": "2026-06-17T10:32:11Z"
 }
 ```
+`elapsed_ms` (FR9) is the server-side time to produce the summary, in milliseconds; the UI displays it as seconds (e.g. "3.2s").
 
 ### Failure examples
 - `422` — both/neither of text/url, empty text, over-length, invalid URL, or extraction returned nothing.
@@ -72,6 +74,7 @@ or
       "source_ref": "https://example.com/article",
       "summary": "The article argues that ...",
       "model": "llama-3.3-70b-versatile",
+      "elapsed_ms": 3214,
       "created_at": "2026-06-17T10:32:11Z"
     }
   ],

@@ -42,7 +42,7 @@ Summariser/
 ## 2. Module responsibilities (single responsibility each)
 | Module | Responsibility | Does NOT |
 |--------|----------------|----------|
-| `routes.py` | Parse/validate HTTP, call a service, shape response | Contain business logic or SQL |
+| `routes.py` | Parse/validate HTTP, call a service, time the summarise call (`elapsed_ms`, FR9), shape response | Contain business logic or SQL |
 | `services/extractor.py` | Fetch URL + extract clean body text | Know about HTTP/DB |
 | `services/summariser.py` | Build prompt, call LLM provider, return summary | Know which LLM vendor |
 | `llm/base.py` | Define the provider contract | — |
@@ -89,11 +89,13 @@ CREATE TABLE summaries (
     input_chars  INTEGER NOT NULL,
     summary      TEXT    NOT NULL,
     model        TEXT    NOT NULL,
+    elapsed_ms   INTEGER NOT NULL, -- server-side time to produce the summary (FR9)
     created_at   TEXT    NOT NULL  -- ISO-8601 timestamp
 );
 ```
 - We store `source_type` + `source_ref` so history can show "from URL X" vs "pasted text".
 - `model` is recorded for traceability (which model produced this).
+- `elapsed_ms` (FR9) records how long the summary took, in milliseconds; the UI displays it as seconds, for both new and past summaries.
 - We **don't** store the full raw input in v1 (privacy + size); a short preview is enough. (Revisit in v2 if needed.)
 
 ## 5. Configuration (`config.py`)

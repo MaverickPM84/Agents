@@ -31,6 +31,7 @@ Ship a working web app where a single user can paste text **or** an article URL,
 | FR6 | List past summaries (most recent first) and allow viewing a single one. |
 | FR7 | Validate input (reject empty input, malformed URL, and over-length text). |
 | FR8 | Return clear, structured errors the UI can display. |
+| FR9 | Measure the time taken to produce each summary (server-side), return it in the response, display it in the UI, and persist it with the summary. |
 
 ## 6. Non-functional requirements (qualities it must have)
 > These are the "-ilities" senior engineers always check. They shape the design as much as features do.
@@ -66,6 +67,7 @@ Ship a working web app where a single user can paste text **or** an article URL,
 4. Summaries appear in a persistent history across restarts.
 5. `pytest` suite passes with the LLM mocked.
 6. `docker compose up` runs backend + frontend together.
+7. Each summary shows how long it took (latency in seconds), for both new and past summaries.
 
 ## 10. Risks
 | Risk | Mitigation |
@@ -74,3 +76,20 @@ Ship a working web app where a single user can paste text **or** an article URL,
 | Some URLs won't extract cleanly | Detect empty extraction, return a clear "couldn't read that page" error. |
 | LLM output varies / hallucinates | Fixed prompt; v1 summarises only provided text; show source for trust. |
 | Beginner overwhelmed by scope | Strict v1 scope; phased implementation plan (doc 07). |
+
+
+Open question:
+1. On the UI Can we show the time it took for the response to come ? I want to check the latency in seconds.
+
+**Answer:** Yes — and it's a good idea. It makes two existing non-functional requirements *measurable*: **Performance** ("returns in a few seconds") and **Observability** ("basic logging"). So it's a refinement, not scope creep. Captured as **FR9** and success-criterion **#7**.
+
+**Where it's measured:** server-side (timed inside FastAPI, around the summarise call), not in the browser. Two reasons:
+- It isolates the latency we actually care about (backend + Groq processing), without network/JSON round-trip noise.
+- The backend is the honest source of truth, and the same number is reused for logging.
+
+A client-side "felt latency" number could be added later, but server-side is the right one for "check the latency."
+
+**How it ripples into the other docs** (one PRD line touches three docs — this is why we plan in order):
+- **04 API Design** — response gains an `elapsed_ms` integer field (store ms, display seconds).
+- **03 LLD** — `summaries` table gets an `elapsed_ms` column, so past summaries show their latency too.
+- **05 UI Prototype** — success state shows e.g. *"Summarised in 3.2s"* (will reflect this when written).

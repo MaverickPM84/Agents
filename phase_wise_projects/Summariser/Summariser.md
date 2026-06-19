@@ -60,3 +60,93 @@ Streamlit form (text or URL) -> POST /summarise -> (if URL: extract body) -> Lan
 - **Tests (pytest + mocking):** automated checks of real code; mocking replaces a real dependency (the LLM) with a fast, fake stand-in during the test.
 - **Map-reduce / chunking (v2):** split long text into chunks that each fit the context window, summarise each (map), then summarise the summaries (reduce) into one final result.
 - **Ollama (later):** runs LLMs locally — no API key, no cost, private, but hardware-limited.
+
+Open Questions - 
+
+1. What are pydantic models in the tech stack additions? How do they work ? What is the purpose ? why are they important ?
+
+**Answer:**
+
+A **Pydantic model** is a Python class that describes the *shape* of some data — what fields it has and what type each field should be. You define it once, and Pydantic automatically **validates** incoming data against that shape, **converts** values where sensible, and gives **clear errors** when the data is wrong.
+
+```python
+from pydantic import BaseModel
+
+class SummariseRequest(BaseModel):
+    text: str | None = None
+    url: str | None = None
+```
+
+That class *is* a contract: "a summarise request has an optional `text` string and an optional `url` string."
+
+**How they work — three things happen automatically:**
+1. **Validation** — if someone sends `text: 123` (a number) where a string is expected, or forgets a required field, Pydantic rejects it instead of letting bad data flow deeper.
+2. **Type coercion** — a field typed as `int` receiving the string `"5"` becomes `5`. Sensible conversions are free; nonsensical ones (`"hello"` → `int`) raise an error.
+3. **Structured errors** — failures report *which field* and *what was wrong*; FastAPI turns these into clean HTTP 422 responses automatically.
+
+**Purpose / why they matter here:** The request crosses a network boundary (Streamlit → HTTP → FastAPI). Anything could arrive at `/summarise`. Pydantic models are the **guard at the door**:
+- **Request model** validates what comes *in*, so summariser code is guaranteed well-formed data — no scattered defensive checks.
+- **Response model** guarantees what goes *out* is consistent, so Streamlit always knows what to expect back.
+
+Three reasons specific to this build:
+1. **Free with FastAPI** — FastAPI is *built on* Pydantic; declaring a model as the endpoint input gives validation, parsing, and error responses with zero extra code.
+2. **Typed contract between layers** — same idea as "state keys are the contract between agents" in the ADK project; here Pydantic is the contract between Streamlit and FastAPI, letting them evolve independently.
+3. **Testable** — the spec wants "request validation" tested; feed good/bad data, assert accept/reject. One of the `pytest` targets.
+
+**One-line summary:** A Pydantic model is a typed, self-validating schema for data crossing the API boundary — it catches bad input early, documents the exact shape of requests/responses, and FastAPI uses it automatically.
+
+---
+
+2. In our use case, what validation is going to happen? (with an example)
+
+**Answer:**
+
+The `/summarise` endpoint accepts **either pasted text or a URL**, so the request model has two optional fields:
+
+```python
+class SummariseRequest(BaseModel):
+    text: str | None = None
+    url: str | None = None
+```
+
+What Pydantic checks at the door, before any summarising logic runs:
+
+**1. Type validation — fields must be strings (or absent).**
+```jsonc
+{ "text": "Long meeting notes here..." }   // ✅ accepted
+{ "text": 12345 }                          // ❌ rejected → 422 "input should be a valid string"
+```
+
+**2. Shape validation — the JSON must have the right structure.**
+```jsonc
+{ "article": "some text" }   // ❌ wrong field name → text and url both stay None
+```
+
+**3. Custom rule (specific to our use case) — exactly one of `text` or `url` must be provided.**
+Plain typing can't express "one or the other, not neither/both", so add a validator:
+
+```python
+from pydantic import model_validator
+
+class SummariseRequest(BaseModel):
+    text: str | None = None
+    url: str | None = None
+
+    @model_validator(mode="after")
+    def exactly_one_input(self):
+        if not self.text and not self.url:
+            raise ValueError("Provide either text or url.")
+        if self.text and self.url:
+            raise ValueError("Provide only one of text or url, not both.")
+        return self
+```
+
+```jsonc
+{ }                                              // ❌ "Provide either text or url."
+{ "text": "hello", "url": "https://x.com" }      // ❌ "Provide only one of text or url, not both."
+{ "url": "https://example.com/article" }         // ✅ accepted
+```
+
+**Why it matters for our flow** (`POST /summarise → (if URL: extract body) → summarise via Groq → save → return`): without validation, an empty or malformed request travels all the way down — wasting a Groq API call, possibly crashing inside `trafilatura`, or writing garbage to SQLite. With the model, bad requests are rejected instantly at the boundary, and the real logic is guaranteed exactly one valid input. Validation pushed to the edge, business logic stays clean.
+
+ 

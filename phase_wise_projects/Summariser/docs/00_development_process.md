@@ -6,6 +6,21 @@
 
 Beginners often open an editor and start typing. Senior engineers don't — because every later decision depends on earlier ones. If you design the API before you know the requirements, you'll redesign it. If you write code before you design the data model, you'll rewrite it. Planning is cheaper than rebuilding. The goal of planning is to **make the expensive mistakes on paper**, where they cost minutes instead of days.
 
+Open Question - Where is the data model design step in below steps ? 
+
+**Answer:** It doesn't get its own numbered step — it lives inside **Step 3, Low-Level Design (LLD)**. The LLD description ("modules, functions, classes, the folder structure, and the **database schema**") is where the data model is designed.
+
+The ordering logic: **HLD (Step 2)** decides *that* a database exists (the box: "SQLite stores history") but not what's in it; **LLD (Step 3)** zooms in and defines the actual columns (e.g. a `summaries` table with `id`, `created_at`, `source_type`, `source_value`, `summary_text`, `model_used`). You can't design the schema until HLD has established the database exists — so it sits inside LLD.
+
+Subtle point for this project — there are **two kinds of "data model", designed in two docs:**
+
+| "Data model" | What it is | Designed in |
+|---|---|---|
+| **Persistence model** | SQLite **table schema** — data *at rest* (survives after the request) | 03 LLD |
+| **API model** | Pydantic **request/response shapes** — data *in transit* (validated at the API boundary) | 04 API Design |
+
+These are related but deliberately kept separate: the shape you *accept over HTTP* and the shape you *store in the DB* are allowed to differ, so one can change without breaking the other. For this summariser the schema is small (one history table), so folding it into LLD is the proportionate call rather than giving it a standalone doc.
+
 A useful mental model: each document below answers one question, and each question can only be answered once the previous one is.
 
 | # | Document | Question it answers | Depends on |
