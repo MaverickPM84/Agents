@@ -15,6 +15,28 @@ The notebook walks through:
 
 `TAKEAWAYS.md` is the written analysis of the two architectures (per-query results, the silent-vs-visible failure distinction, cost trade-offs, when-to-use-which). Keep it in sync with the notebook's cell outputs if those change — it cites specific cells (cell-10, cell-12/13, cell-19, cell-22).
 
+### Notebook variants
+
+- **`agentic_rag_v3.ipynb`** — the original, no observability. This is the canonical teaching notebook.
+- **`agentic_rag_v3_opik.ipynb`** — a copy instrumented with **Opik** (Comet's open-source LLM observability). Same logic, plus tracing. Keep the two in sync if you change the core RAG logic; the only intended differences are the Opik additions described below.
+
+## Opik observability (`agentic_rag_v3_opik.ipynb` only)
+
+This variant traces both RAG paths to Opik so each query shows up as a single trace tree (LLM calls + tool calls nested, with token counts and latency). Two integration surfaces, matching the two LLM clients:
+
+| Surface | Cell | Mechanism |
+|---|---|---|
+| Self-RAG (`ChatOpenAI` + LCEL chains) | cell-8 | `OpikTracer` callback passed via `chain.invoke(..., config={"callbacks": [self.opik_tracer]})`; `@track` on `SelfRAG.query` |
+| Agentic RAG client (`OpenAI()`) | cell-16 | `client = track_openai(client, project_name=OPIK_PROJECT_NAME)` — auto-logs every `chat.completions.create` |
+| Agentic RAG tools (5 functions) | cell-16 | `@track(type="tool", project_name=OPIK_PROJECT_NAME)` on each — each tool call is its own span |
+| Agentic RAG orchestration | cell-17 | `@track` on `agentic_rag_query` — the whole tool loop becomes one trace |
+
+`opik.configure(...)` and `OPIK_PROJECT_NAME = "agentic-rag-insurance"` live in **cell-4** alongside the Groq config (same single-config-cell convention). Tracing first reaches the Opik backend at cell-10 (Self-RAG) / cell-19 (Agentic RAG), not at setup.
+
+**Cost caveat:** Opik auto-computes dollar cost only for known OpenAI/Gemini model IDs. Groq models show token counts and latency (always tracked) but the dollar figure may read as 0/unknown — expected, not a bug.
+
+**Optional MCP server:** the Opik MCP server (`uvx opik-mcp`, added via `claude mcp add`) lets you query traces from an AI host like Claude Code. It only *reads* traces — it is not what instruments the notebook (the SDK above does that). See `OPIK_SETUP_GUIDE.md` §7.
+
 ## Provider setup: Groq for chat, local embeddings
 
 This notebook runs **all chat/LLM calls through Groq** via Groq's OpenAI-compatible API. Because the code uses the OpenAI SDK and `langchain-openai`, switching providers is just a `base_url` + `api_key` change — no rewrite of the tool-calling logic.
@@ -41,7 +63,7 @@ cell-23 is a second, condensed setup block (a shorter document set for the compa
    ```
    GROQ_API_KEY=gsk_your_key_here
    ```
-   Get a free key at https://console.groq.com/keys. If `GROQ_API_KEY` is not found, cell-4 falls back to a `getpass` prompt.
+   Get a free key at https://console.groq.com/keys. If `GROQ_API_KEY` is not found, cell-4 falls back to a `getpass` prompt. For the `_opik` variant, also add `OPIK_API_KEY` (and optionally `OPIK_WORKSPACE`) from https://www.comet.com/api/my/settings — same `getpass` fallback.
 2. Run the install cell (cell-3) — it installs `openai`, `langchain-openai`, `langchain-huggingface`, `sentence-transformers`, `langchain-chroma`, `chromadb`, `python-dotenv`.
 3. Run cells top to bottom. First execution downloads the embedding model once.
 
@@ -74,3 +96,4 @@ GROQ_CHAT_MODEL = "openai/gpt-oss-120b"   # OpenAI-trained, clean structured too
 - **Keep the OpenAI-compatible surface.** The whole point is that Groq is a drop-in via `base_url`. Pass `base_url=GROQ_BASE_URL` and `api_key=os.environ["GROQ_API_KEY"]` when constructing `ChatOpenAI` / `OpenAI()`; don't hardcode model names at call sites — use `GROQ_CHAT_MODEL`.
 - **Embeddings stay local.** Any new vector-store cell should use `HuggingFaceEmbeddings`, not a Groq-keyed `OpenAIEmbeddings`.
 - The five Agentic RAG tools are plain Python functions dispatched through `execute_tool`; their JSON schemas in `tools` must match the function signatures.
+- **In the `_opik` variant, keep tracing provider-agnostic.** `track_openai` wraps the same Groq-pointed `OpenAI()` client (it doesn't assume real OpenAI); `@track`/`OpikTracer` are transport-agnostic. Don't hardcode a project name at call sites — use `OPIK_PROJECT_NAME` from cell-4.
