@@ -7,9 +7,16 @@ A collection of AI Agent product design and implementation projects.
 | Agent | Domain | Status |
 |---------|----------|----------|
 | [Order Tracking Agent](order-tracking-agent/README.md) | Retail CX | Complete |
+| [ADK Blog Writer](build-ai-agent-google-adk/) | Multi-Agent Content | Complete |
+| [Self-RAG vs Agentic RAG](AgenticRAG/README.md) | Enterprise Search | Complete |
 | Concierge Agent | Customer Support | In Progress |
 | Shopping Assistant | eCommerce | Planned |
-| RAG Research Agent | Enterprise Search | Planned |
+
+### Project highlights
+
+- **[Order Tracking Agent](order-tracking-agent/README.md)** — a PM case study (system prompt + tool schemas + test scenarios) for a retail order-tracking assistant, designed to run in Google AI Studio.
+- **[ADK Blog Writer](build-ai-agent-google-adk/)** — a multi-agent blog writer on Google's Agent Development Kit, with plan → write → self-correct loops between specialized agents.
+- **[Self-RAG vs Agentic RAG](AgenticRAG/README.md)** — a teaching notebook contrasting single-pass Self-RAG with an iterative, tool-calling Agentic RAG over an insurance-claims case study; the `_opik` variant adds full LLM-observability tracing.
 
 ## Phase-Wise Projects
 
