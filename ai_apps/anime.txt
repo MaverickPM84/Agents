@@ -1,0 +1,2 @@
+    action anime = Baki Hanma
+    kids anime = Naruto
